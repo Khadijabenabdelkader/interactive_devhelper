@@ -164,13 +164,7 @@ export default function ReadmeGenerator() {
 
                     </div>
 
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-sm">
-
-                        <span className="w-2 h-2 rounded-full bg-green-400" />
-
-                        Powered by Ollama Local AI
-
-                    </div>
+                    
 
                 </div>
 
@@ -403,7 +397,7 @@ Portfolio Analyzer`}
                                     </h3>
 
                                     <p className="text-slate-500 max-w-sm text-sm">
-                                        Enter your project information and let Ollama generate your documentation.
+                                        Enter your project information and let gemini generate your documentation.
                                     </p>
 
                                 </div>

@@ -71,7 +71,7 @@ export default function DebugAssistant() {
 
 
             setErrorMessage(
-                "Unable to analyze the error. Make sure the backend and Ollama are running."
+                "Unable to analyze the error. Make sure the backend and gemini are running."
             );
 
         } finally {
@@ -358,24 +358,21 @@ ReferenceError: API is not defined
     at analyze (CodeReview.jsx:38:24)`}
 
                                 className="
-                                    w-full
-                                    h-80
-                                    resize-none
-                                    rounded-xl
-                                    border
-                                    border-slate-700
-                                    bg-slate-950
-                                    text-slate-200
-                                    placeholder:text-slate-600
-                                    p-4
-                                    font-mono
-                                    text-sm
-                                    outline-none
-                                    focus:border-violet-500
-                                    focus:ring-1
-                                    focus:ring-violet-500
-                                    transition
-                                "
+    w-full
+    min-h-[220px]
+    sm:min-h-[280px]
+    lg:h-80
+    resize-y
+    rounded-xl
+    border border-slate-700
+    bg-slate-950
+    text-slate-200
+    p-4
+    font-mono text-sm
+    outline-none
+    focus:border-violet-500
+    transition
+"
 
                             />
 
@@ -1110,7 +1107,7 @@ ReferenceError: API is not defined
                         ">
 
                             Your error is analyzed locally
-                            through Ollama, so your code does not
+                            through gemini, so your code does not
                             need to be sent to an external AI API.
 
                         </p>

@@ -1,4 +1,7 @@
+
 import { useEffect, useRef, useState } from "react";
+
+import ChatInput from "./ChatInput";
 
 import {
     chatAI,
@@ -9,51 +12,109 @@ import {
 } from "../services/aiService";
 
 import ChatWindow from "../components/chat/ChatWindow";
-import ChatInput from "../components/chat/ChatInput";
+
+const INITIAL_MESSAGE = {
+    role: "assistant",
+    content: "👋 Hello! I'm DevHelper AI. How can I help you today?"
+};
+
+const withAttachment = (content, name) =>
+    name ? `📎 ${name}\n\n${content}` : content;
 
 export default function Chat() {
 
+    // ==========================================
+    // STATES
+    // ==========================================
+
     const [conversations, setConversations] = useState([]);
+
     const [currentConversation, setCurrentConversation] = useState(null);
 
     const [messages, setMessages] = useState([
         {
-            id: 1,
-            role: "assistant",
-            content:
-                "👋 Hello! I'm DevHelper AI. How can I help you today?"
+            id: "welcome",
+            ...INITIAL_MESSAGE
         }
     ]);
 
     const [loading, setLoading] = useState(false);
+
     const [loadingHistory, setLoadingHistory] = useState(false);
+
+    // Mobile sidebar
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    // Prevent updates after component unmount
+    const messagesEndRef = useRef(null);
 
     // ==========================================
     // AUTO SCROLL
     // ==========================================
 
-    const messagesEndRef = useRef(null);
-
     const scrollToBottom = (smooth = true) => {
-        setTimeout(() => {
+
+        requestAnimationFrame(() => {
+
             messagesEndRef.current?.scrollIntoView({
                 behavior: smooth ? "smooth" : "auto",
                 block: "end"
             });
-        }, 50);
+
+        });
+
     };
 
-    // Scroll whenever messages change
     useEffect(() => {
+
         scrollToBottom();
+
     }, [messages, loading]);
+
+    // ==========================================
+    // MOBILE SIDEBAR
+    // ==========================================
+
+    useEffect(() => {
+
+        if (!sidebarOpen) return;
+
+        const handleEscape = (event) => {
+
+            if (event.key === "Escape") {
+                setSidebarOpen(false);
+            }
+
+        };
+
+        document.addEventListener("keydown", handleEscape);
+
+        // Prevent background scrolling while drawer is open
+        const previousOverflow = document.body.style.overflow;
+
+        document.body.style.overflow = "hidden";
+
+        return () => {
+
+            document.removeEventListener(
+                "keydown",
+                handleEscape
+            );
+
+            document.body.style.overflow = previousOverflow;
+
+        };
+
+    }, [sidebarOpen]);
 
     // ==========================================
     // LOAD CONVERSATIONS
     // ==========================================
 
     useEffect(() => {
+
         loadConversations();
+
     }, []);
 
     const loadConversations = async () => {
@@ -68,16 +129,14 @@ export default function Chat() {
 
         } catch (error) {
 
-            console.error(
-                "Load conversations error:",
-                error
-            );
+            console.error("Load conversations error:", error);
 
         } finally {
 
             setLoadingHistory(false);
 
         }
+
     };
 
     // ==========================================
@@ -86,14 +145,17 @@ export default function Chat() {
 
     const handleNewChat = async () => {
 
+        if (loading) return;
+
         try {
 
-            const conversation =
-                await createConversation();
+            const conversation = await createConversation();
 
             setConversations(prev => [
                 conversation,
-                ...prev
+                ...prev.filter(
+                    item => item._id !== conversation._id
+                )
             ]);
 
             setCurrentConversation(conversation);
@@ -101,22 +163,20 @@ export default function Chat() {
             setMessages([
                 {
                     id: Date.now(),
-                    role: "assistant",
-                    content:
-                        "👋 Hello! I'm DevHelper AI. How can I help you today?"
+                    ...INITIAL_MESSAGE
                 }
             ]);
+
+            setSidebarOpen(false);
 
             scrollToBottom(false);
 
         } catch (error) {
 
-            console.error(
-                "Create conversation error:",
-                error
-            );
+            console.error("Create conversation error:", error);
 
         }
+
     };
 
     // ==========================================
@@ -125,57 +185,52 @@ export default function Chat() {
 
     const handleSelectConversation = async (conversation) => {
 
+        if (loadingHistory) return;
+
         try {
 
             setLoadingHistory(true);
 
             setCurrentConversation(conversation);
 
-            const history =
-                await getMessages(
-                    conversation._id
-                );
+            setSidebarOpen(false);
 
-            const formattedMessages =
-                history.map(item => ({
-                    id: item._id,
-                    role: item.role,
-                    content: item.content
-                }));
+            const history = await getMessages(conversation._id);
+
+            const formattedMessages = (history || []).map(item => ({
+                id: item._id,
+                role: item.role,
+                content: withAttachment(
+                    item.content,
+                    item.attachment?.name
+                )
+            }));
 
             setMessages(formattedMessages);
 
-            // Go to bottom after history loads
-            setTimeout(() => {
-                scrollToBottom(false);
-            }, 100);
+            scrollToBottom(false);
 
         } catch (error) {
 
-            console.error(
-                "Load conversation error:",
-                error
-            );
+            console.error("Load conversation error:", error);
 
         } finally {
 
             setLoadingHistory(false);
 
         }
+
     };
 
     // ==========================================
     // DELETE CHAT
     // ==========================================
 
-    const handleDeleteConversation =
-        async (conversationId) => {
+    const handleDeleteConversation = async (conversationId) => {
 
         try {
 
-            await deleteConversation(
-                conversationId
-            );
+            await deleteConversation(conversationId);
 
             setConversations(prev =>
                 prev.filter(
@@ -184,10 +239,7 @@ export default function Chat() {
                 )
             );
 
-            if (
-                currentConversation?._id ===
-                conversationId
-            ) {
+            if (currentConversation?._id === conversationId) {
 
                 setCurrentConversation(null);
 
@@ -195,120 +247,106 @@ export default function Chat() {
                     {
                         id: Date.now(),
                         role: "assistant",
-                        content:
-                            "👋 Start a new conversation with DevHelper AI."
+                        content: "👋 Start a new conversation with DevHelper AI."
                     }
                 ]);
+
             }
 
         } catch (error) {
 
-            console.error(
-                "Delete conversation error:",
-                error
-            );
+            console.error("Delete conversation error:", error);
 
         }
+
     };
 
     // ==========================================
     // SEND MESSAGE
     // ==========================================
 
-    const sendMessage = async (text) => {
+    const sendMessage = async (text, attachedFile = null) => {
 
-        if (
-            !text ||
-            !text.trim() ||
-            loading
-        ) {
+        const userMessage = (text || "").trim();
+
+        if ((!userMessage && !attachedFile) || loading) {
             return;
         }
-
-        const userMessage = text.trim();
 
         setLoading(true);
 
         try {
 
-            let conversation =
-                currentConversation;
+            let conversation = currentConversation;
 
-            // Create conversation if needed
+            // Create conversation automatically if needed
             if (!conversation) {
 
-                conversation =
-                    await createConversation();
+                conversation = await createConversation();
 
-                setCurrentConversation(
-                    conversation
-                );
+                setCurrentConversation(conversation);
 
                 setConversations(prev => [
                     conversation,
-                    ...prev
+                    ...prev.filter(
+                        item => item._id !== conversation._id
+                    )
                 ]);
+
             }
 
-            // Add user message immediately
+            // Display user message immediately
             setMessages(prev => [
                 ...prev,
                 {
-                    id: Date.now(),
+                    id: `user-${Date.now()}`,
                     role: "user",
-                    content: userMessage
+                    content: withAttachment(
+                        userMessage || "Summarize this document.",
+                        attachedFile?.name
+                    )
                 }
             ]);
 
-            // Scroll to user message
             scrollToBottom();
 
-            // Call AI
-            const data =
-                await chatAI(
-                    userMessage,
-                    conversation._id
-                );
+            // Send message to backend / AI
+            const data = await chatAI(
+                userMessage,
+                conversation._id,
+                attachedFile
+            );
 
             const answer =
                 data.response ||
                 data.answer ||
                 "No response received.";
 
-            // Add AI response
+            // Display AI response
             setMessages(prev => [
                 ...prev,
                 {
-                    id: Date.now() + 1,
+                    id: `assistant-${Date.now()}`,
                     role: "assistant",
                     content: answer
                 }
             ]);
 
-            // Refresh history
+            // Refresh conversation history
             await loadConversations();
 
         } catch (error) {
 
-            console.error(
-                "Chat Error:",
-                error
-            );
+            console.error("Chat Error:", error);
 
-            console.error(
-                "Status:",
-                error.response?.status
-            );
+            console.error("Status:", error.response?.status);
 
-            console.error(
-                "Backend response:",
-                error.response?.data
-            );
+            console.error("Backend response:", error.response?.data);
 
             setMessages(prev => [
                 ...prev,
                 {
-                    id: Date.now(),
+                    id: `error-${Date.now()}`,
                     role: "assistant",
                     content:
                         error.response?.data?.message ||
@@ -321,6 +359,7 @@ export default function Chat() {
             setLoading(false);
 
         }
+
     };
 
     // ==========================================
@@ -329,210 +368,313 @@ export default function Chat() {
 
     return (
 
-        <div className="
-            flex
-            h-full
-            min-h-0
-            bg-slate-950
-            text-white
-            overflow-hidden
-        ">
+        <div
+            className="
+                relative
+                flex
+                w-full
+                h-full
+                min-h-0
+                overflow-hidden
+                bg-slate-950
+                text-white
+            "
+        >
+
+            {/* ======================================
+                MOBILE OVERLAY
+            ====================================== */}
+
+            {sidebarOpen && (
+
+                <button
+                    type="button"
+                    aria-label="Close chat history"
+                    onClick={() => setSidebarOpen(false)}
+                    className="
+                        fixed
+                        inset-0
+                        z-40
+                        bg-black/60
+                        backdrop-blur-sm
+                        md:hidden
+                    "
+                />
+
+            )}
 
             {/* ======================================
                 SIDEBAR
             ====================================== */}
 
-            <aside className="
-                w-72
-                shrink-0
-                bg-slate-900
-                border-r
-                border-slate-800
-                flex
-                flex-col
-                min-h-0
-            ">
+            <aside
+                id="chat-sidebar"
+                className={`
+                    fixed
+                    inset-y-0
+                    left-0
+                    z-50
+                    flex
+                    w-[85%]
+                    max-w-72
+                    min-h-0
+                    flex-col
+                    border-r
+                    border-slate-800
+                    bg-slate-900
+                    shadow-2xl
+                    transition-transform
+                    duration-300
+                    ease-in-out
+
+                    ${sidebarOpen
+                        ? "translate-x-0"
+                        : "-translate-x-full"
+                    }
+
+                    md:relative
+                    md:z-0
+                    md:w-72
+                    md:max-w-none
+                    md:shrink-0
+                    md:translate-x-0
+                    md:shadow-none
+                `}
+            >
+
+                {/* Sidebar Header */}
+
+                <div className="
+                    flex
+                    items-center
+                    justify-between
+                    p-4
+                    shrink-0
+                ">
+
+                    <h2 className="
+                        text-sm
+                        font-semibold
+                        text-slate-300
+                    ">
+                        DevHelper AI
+                    </h2>
+
+                    {/* Close button - Mobile */}
+
+                    <button
+                        type="button"
+                        onClick={() => setSidebarOpen(false)}
+                        className="
+                            md:hidden
+                            rounded-lg
+                            p-2
+                            text-slate-400
+                            hover:bg-slate-800
+                            hover:text-white
+                        "
+                        aria-label="Close sidebar"
+                    >
+                        ✕
+                    </button>
+
+                </div>
 
                 {/* New Chat */}
 
-                <div className="p-4 shrink-0">
+                <div className="px-4 pb-4 shrink-0">
 
                     <button
                         onClick={handleNewChat}
+                        disabled={loading}
                         className="
-                            w-full
                             flex
+                            w-full
                             items-center
                             justify-center
                             gap-2
-                            bg-cyan-500
-                            hover:bg-cyan-400
-                            text-slate-950
-                            font-semibold
-                            py-3
                             rounded-xl
+                            bg-cyan-500
+                            py-3
+                            font-semibold
+                            text-slate-950
                             transition
+                            hover:bg-cyan-400
+                            disabled:cursor-not-allowed
+                            disabled:opacity-50
                         "
                     >
+
                         <span className="text-xl">
                             +
                         </span>
 
                         New Chat
+
                     </button>
 
                 </div>
 
-                {/* History title */}
+                {/* History Title */}
 
-                <div className="px-4 pb-3 shrink-0">
+                <div className="
+                    shrink-0
+                    px-4
+                    pb-3
+                ">
 
-                    <h2 className="
+                    <h3 className="
                         text-xs
+                        font-semibold
                         uppercase
                         tracking-wider
                         text-slate-500
-                        font-semibold
                     ">
                         Chat History
-                    </h2>
+                    </h3>
 
                 </div>
 
-                {/* Scrollable history */}
+                {/* Conversations List */}
 
                 <div className="
-                    flex-1
+                    custom-scrollbar
                     min-h-0
+                    flex-1
                     overflow-y-auto
+                    overscroll-contain
                     px-3
                     pb-4
-                    custom-scrollbar
                 ">
 
                     {loadingHistory && (
 
                         <p className="
-                            text-slate-500
-                            text-sm
                             p-3
+                            text-sm
+                            text-slate-500
                         ">
                             Loading chats...
                         </p>
 
                     )}
 
-                    {!loadingHistory &&
-                        conversations.length === 0 && (
+                    {!loadingHistory && conversations.length === 0 && (
 
-                            <p className="
-                                text-slate-500
-                                text-sm
-                                p-3
-                                text-center
-                            ">
-                                No conversations yet.
-                            </p>
+                        <p className="
+                            p-3
+                            text-center
+                            text-sm
+                            text-slate-500
+                        ">
+                            No conversations yet.
+                        </p>
 
-                        )}
+                    )}
 
-                    {!loadingHistory &&
-                        conversations.map(conversation => (
+                    {!loadingHistory && conversations.map(conversation => (
 
-                            <div
-                                key={conversation._id}
-                                className={`
-                                    group
-                                    flex
-                                    items-center
-                                    gap-1
-                                    mb-1
-                                    rounded-xl
-                                    transition
-                                    ${
-                                        currentConversation?._id ===
-                                        conversation._id
-                                            ? "bg-slate-800"
-                                            : "hover:bg-slate-800/70"
-                                    }
-                                `}
+                        <div
+                            key={conversation._id}
+                            className={`
+                                group
+                                mb-1
+                                flex
+                                items-center
+                                gap-1
+                                rounded-xl
+                                transition
+
+                                ${currentConversation?._id === conversation._id
+                                    ? "bg-slate-800"
+                                    : "hover:bg-slate-800/70"
+                                }
+                            `}
+                        >
+
+                            {/* Select Conversation */}
+
+                            <button
+                                onClick={() =>
+                                    handleSelectConversation(conversation)
+                                }
+                                className="
+                                    min-w-0
+                                    flex-1
+                                    px-3
+                                    py-3
+                                    text-left
+                                "
                             >
 
-                                <button
-                                    onClick={() =>
-                                        handleSelectConversation(
-                                            conversation
-                                        )
+                                <div className="
+                                    truncate
+                                    text-sm
+                                    text-slate-200
+                                ">
+                                    {conversation.title || "New Chat"}
+                                </div>
+
+                                <div className="
+                                    mt-1
+                                    text-xs
+                                    text-slate-500
+                                ">
+                                    {conversation.updatedAt
+                                        ? new Date(
+                                            conversation.updatedAt
+                                        ).toLocaleDateString()
+                                        : ""
                                     }
-                                    className="
-                                        flex-1
-                                        min-w-0
-                                        text-left
-                                        px-3
-                                        py-3
-                                    "
-                                >
+                                </div>
 
-                                    <div className="
-                                        truncate
-                                        text-sm
-                                        text-slate-200
-                                    ">
-                                        {conversation.title ||
-                                            "New Chat"}
-                                    </div>
+                            </button>
 
-                                    <div className="
-                                        text-xs
-                                        text-slate-500
-                                        mt-1
-                                    ">
-                                        {conversation.updatedAt
-                                            ? new Date(
-                                                conversation.updatedAt
-                                            ).toLocaleDateString()
-                                            : ""}
-                                    </div>
+                            {/* Delete Conversation */}
 
-                                </button>
+                            <button
+                                onClick={() =>
+                                    handleDeleteConversation(
+                                        conversation._id
+                                    )
+                                }
+                                className="
+                                    shrink-0
+                                    rounded-lg
+                                    px-3
+                                    py-3
+                                    text-slate-500
+                                    transition
+                                    hover:bg-red-500/10
+                                    hover:text-red-400
+                                    opacity-100
+                                    md:opacity-0
+                                    md:group-hover:opacity-100
+                                    focus:opacity-100
+                                "
+                                title="Delete conversation"
+                                aria-label="Delete conversation"
+                            >
+                                🗑
+                            </button>
 
-                                <button
-                                    onClick={() =>
-                                        handleDeleteConversation(
-                                            conversation._id
-                                        )
-                                    }
-                                    className="
-                                        opacity-0
-                                        group-hover:opacity-100
-                                        text-slate-500
-                                        hover:text-red-400
-                                        px-3
-                                        transition
-                                    "
-                                    title="Delete conversation"
-                                >
-                                    🗑
-                                </button>
+                        </div>
 
-                            </div>
-
-                        ))}
+                    ))}
 
                 </div>
 
             </aside>
-
 
             {/* ======================================
                 MAIN CHAT
             ====================================== */}
 
             <main className="
-                flex-1
+                flex
                 min-w-0
                 min-h-0
-                flex
+                flex-1
                 flex-col
                 overflow-hidden
             ">
@@ -540,28 +682,75 @@ export default function Chat() {
                 {/* Header */}
 
                 <header className="
+                    flex
                     h-16
                     shrink-0
-                    flex
                     items-center
-                    px-6
+                    gap-3
                     border-b
                     border-slate-800
                     bg-slate-900/70
+                    px-3
+                    sm:px-4
+                    md:px-6
                 ">
 
-                    <div className="min-w-0">
+                    {/* Mobile Menu Button */}
+
+                    <button
+                        type="button"
+                        onClick={() => setSidebarOpen(true)}
+                        className="
+                            flex
+                            shrink-0
+                            items-center
+                            justify-center
+                            rounded-lg
+                            p-2
+                            text-slate-300
+                            transition
+                            hover:bg-slate-800
+                            hover:text-white
+                            md:hidden
+                        "
+                        aria-label="Open chat history"
+                        aria-expanded={sidebarOpen}
+                        aria-controls="chat-sidebar"
+                    >
+
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="22"
+                            height="22"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        >
+                            <line x1="4" y1="6" x2="20" y2="6" />
+                            <line x1="4" y1="12" x2="20" y2="12" />
+                            <line x1="4" y1="18" x2="20" y2="18" />
+                        </svg>
+
+                    </button>
+
+                    {/* Conversation Title */}
+
+                    <div className="min-w-0 flex-1">
 
                         <h1 className="
-                            font-semibold
-                            text-lg
                             truncate
+                            text-base
+                            font-semibold
+                            sm:text-lg
                         ">
-                            {currentConversation?.title ||
-                                "DevHelper AI"}
+                            {currentConversation?.title || "DevHelper AI"}
                         </h1>
 
                         <p className="
+                            truncate
                             text-xs
                             text-slate-500
                         ">
@@ -572,26 +761,27 @@ export default function Chat() {
 
                 </header>
 
-
                 {/* ==================================
                     SCROLLABLE MESSAGES
                 ================================== */}
 
                 <div className="
-                    flex-1
+                    custom-scrollbar
                     min-h-0
+                    flex-1
                     overflow-y-auto
                     overscroll-contain
-                    custom-scrollbar
                 ">
 
                     <div className="
+                        mx-auto
                         w-full
                         max-w-5xl
-                        mx-auto
-                        px-4
+                        px-3
+                        py-4
+                        sm:px-4
+                        sm:py-6
                         md:px-6
-                        py-6
                     ">
 
                         <ChatWindow
@@ -599,8 +789,7 @@ export default function Chat() {
                             loading={loading}
                         />
 
-                        {/* Invisible element used
-                            for automatic scrolling */}
+                        {/* Auto Scroll Reference */}
 
                         <div
                             ref={messagesEndRef}
@@ -611,9 +800,8 @@ export default function Chat() {
 
                 </div>
 
-
                 {/* ==================================
-                    FIXED INPUT AREA
+                    INPUT AREA
                 ================================== */}
 
                 <div className="
@@ -621,15 +809,18 @@ export default function Chat() {
                     border-t
                     border-slate-800
                     bg-slate-950
+                    pb-[env(safe-area-inset-bottom)]
                 ">
 
                     <div className="
-                        max-w-5xl
                         mx-auto
                         w-full
-                        px-4
+                        max-w-5xl
+                        px-3
+                        py-3
+                        sm:px-4
+                        sm:py-4
                         md:px-6
-                        py-4
                     ">
 
                         <ChatInput
@@ -638,10 +829,12 @@ export default function Chat() {
                         />
 
                         <p className="
+                            mt-2
+                            hidden
                             text-center
                             text-[11px]
                             text-slate-600
-                            mt-2
+                            sm:block
                         ">
                             DevHelper AI can make mistakes.
                             Verify important information.
@@ -654,5 +847,7 @@ export default function Chat() {
             </main>
 
         </div>
+
     );
+
 }

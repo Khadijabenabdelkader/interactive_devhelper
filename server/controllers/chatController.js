@@ -109,6 +109,8 @@ const getMessages = async (req, res) => {
                 conversationId,
                 userId: req.user._id
             })
+            .select("-attachment.text")
+
             .sort({
                 createdAt: 1
             });

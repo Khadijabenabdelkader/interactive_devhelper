@@ -13,8 +13,8 @@ FaFileAlt,
 FaUser
 
 }
-
 from "react-icons/fa";
+import { Clock } from "lucide-react";
 
 
 import { Sparkles } from "lucide-react";
@@ -54,7 +54,11 @@ name:"Portfolio Analyzer",
 path:"portfolio",
 icon:<FaUser/>
 },
-
+{
+    name: "History",
+    path: "/history",
+    icon: <Clock/>
+},
 {
     name: "AI Center",
     path: "/ai",

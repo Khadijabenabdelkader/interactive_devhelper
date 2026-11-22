@@ -7,6 +7,12 @@ const {
     readme,
     portfolio
 } = require("../controllers/aiController");
+const {
+  getHistory,
+  getHistoryById,
+  deleteHistory,
+  downloadHistoryFile
+} = require("../controllers/historyController");
 
 const protect = require("../middlewares/authMiddleware");
 
@@ -41,5 +47,10 @@ router.post(
     protect,
     portfolio
 );
+
+router.get("/",protect, getHistory);
+router.get("/:id/download",protect, downloadHistoryFile);
+router.get("/:id",protect, getHistoryById);
+router.delete("/:id",protect, deleteHistory);
 
 module.exports = router;

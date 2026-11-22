@@ -25,6 +25,7 @@ app.use("/api/ai", aiRoutes);
 
 app.use("/api/projects",projectRoutes);
 
+
 app.get("/", (req,res)=>{
     res.json({
         message:"DevHelper AI API running 🚀"

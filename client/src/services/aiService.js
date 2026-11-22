@@ -1,11 +1,12 @@
 import axios from "axios";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const api = axios.create({
-    baseURL: "http://localhost:5000/api/ai"
+    baseURL: `${API_URL}/api/ai`
 });
 
 const chatApi = axios.create({
-    baseURL: "http://localhost:5000/api/chat"
+    baseURL: `${API_URL}/api/chat`
 });
 
 const addToken = (config) => {
@@ -94,25 +95,25 @@ export const deleteConversation = async (
 // ==========================================
 // AI CHAT
 // ==========================================
+export const chatAI = async (message, conversationId, file = null) => {
 
-export const chatAI = async (
-    message,
-    conversationId
-) => {
+    console.log("3. chatAI file:", file, file instanceof File);
 
-    const res =
-        await api.post(
-            "/chat",
-            {
-                message,
-                conversationId
-            }
-        );
+    if (file instanceof File) {
 
+        const formData = new FormData();
+        formData.append("message", message);
+        formData.append("conversationId", conversationId);
+        formData.append("file", file, file.name);
+
+        // Ne mets pas de Content-Type à la main : le navigateur ajoute le bon (avec boundary)
+        const res = await api.post("/chat", formData);
+        return res.data;
+    }
+
+    const res = await api.post("/chat", { message, conversationId });
     return res.data;
 };
-
-
 // ==========================================
 // DEBUG
 // ==========================================

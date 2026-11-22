@@ -45,6 +45,12 @@ const tools = [
         description: "Analyze your developer portfolio and improve it.",
         icon: BarChart3,
         path: "/portfolio"
+    },
+    {
+        title: "History",
+        description: "Keep track of everything you have done with DevHelper AI.",
+        icon: BarChart3,
+        path: "/history"
     }
 
 ];
@@ -57,8 +63,8 @@ export default function AICenter() {
 
     return (
 
-        <div className="min-h-screen bg-slate-950 text-white p-8">
-
+<div className="min-h-screen bg-slate-950 text-white
+                px-4 py-6 sm:px-6 sm:py-8 lg:p-8">
             <div className="max-w-7xl mx-auto">
 
 
@@ -75,8 +81,7 @@ export default function AICenter() {
 
                         </div>
 
-                        <h1 className="text-4xl font-bold">
-                            AI Developer Center
+<h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold">                            AI Developer Center
                         </h1>
 
                     </div>

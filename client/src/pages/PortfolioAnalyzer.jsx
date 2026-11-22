@@ -148,8 +148,7 @@ export default function PortfolioAnalyzer() {
 
                         <div>
 
-                            <h1 className="text-3xl md:text-4xl font-bold">
-                                AI Portfolio Analyzer
+<h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">                                AI Portfolio Analyzer
                             </h1>
 
                             <p className="text-slate-400 mt-1">
@@ -181,7 +180,7 @@ export default function PortfolioAnalyzer() {
 
                         <span className="w-2 h-2 rounded-full bg-green-400" />
 
-                        Powered by Ollama Local AI
+                        Powered by gemini Local AI
 
                     </div>
 
@@ -232,7 +231,7 @@ export default function PortfolioAnalyzer() {
                                     name="name"
                                     value={form.name}
                                     onChange={handleChange}
-                                    placeholder="Khadija Ben Abdelkader"
+                                    placeholder="Name"
                                     className="w-full rounded-xl bg-slate-900 border border-white/10 px-4 py-3 outline-none focus:border-purple-500 transition"
                                 />
 
@@ -314,10 +313,7 @@ export default function PortfolioAnalyzer() {
                                     value={form.projects}
                                     onChange={handleChange}
                                     rows={7}
-                                    placeholder={`AI Developer Portfolio
-Training Management Application
-MERN E-commerce Application
-Potato Image Classification`}
+                                    placeholder={`Name of the projects`}
                                     className="w-full rounded-xl bg-slate-900 border border-white/10 px-4 py-3 outline-none resize-none focus:border-purple-500 transition"
                                 />
 
@@ -444,7 +440,7 @@ Potato Image Classification`}
                                 </h3>
 
                                 <p className="text-sm text-slate-500 max-w-sm mt-2">
-                                    Enter your portfolio information and let Ollama evaluate your profile.
+                                    Enter your portfolio information and let gemini evaluate your profile.
                                 </p>
 
                             </div>
@@ -507,8 +503,8 @@ Potato Image Classification`}
 
                                 {/* SCORE CARDS */}
 
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
+<div className="grid grid-cols-1 sm:grid-cols-2
+                lg:grid-cols-3 gap-4">
                                     <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
 
                                         <div className="flex items-center gap-2 mb-3">
@@ -546,8 +542,9 @@ Potato Image Classification`}
 
                                         </div>
 
-                                        <div className={`text-3xl font-bold ${getScoreClass(result.projects)}`}>
-                                            {result.projects || 0}
+<div className={`text-5xl sm:text-6xl font-bold
+                 ${getScoreClass(result.overallScore)}`}>
+                                                {result.projects || 0}
                                         </div>
 
                                     </div>

@@ -22,6 +22,7 @@ import AICenter from "../pages/AICenter";
 import DebugAssistant from "../pages/DebugAssistant";
 import ReadmeGenerator from "../pages/ReadmeGenerator";
 import PortfolioAnalyzer  from "../pages/PortfolioAnalyzer";
+import History from "../pages/History";
 export default function AppRoutes(){
 
 
@@ -128,9 +129,9 @@ element={<CodeReviewer />}
     path="portfolio"
     element={<PortfolioAnalyzer />}
 />
+<Route path="/history" element={<History />} />
 
 </Route>
-
 
 </Routes>
 
