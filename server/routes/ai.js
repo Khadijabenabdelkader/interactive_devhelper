@@ -1,18 +1,30 @@
+const express = require("express");
 const multer = require("multer");
+
+const protect = require("../middlewares/authMiddleware");
+
+const {
+    chat,
+    review,
+    readme,
+    portfolio,
+    debugError
+} = require("../controllers/aiController");
+
+const router = express.Router();
+
+
+// ==========================================
+// FILE UPLOAD (memory only, nothing written to disk)
+// ==========================================
 
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 10 * 1024 * 1024 } // 10 MB
 });
 
-// Exécute multer une seule fois, quelle que soit la route qui appelle chat
-const uploadFile = (req, res, next) => {
-
-    if (req._multerDone) return next();
-
+const uploadFile = (req, res, next) =>
     upload.single("file")(req, res, (err) => {
-
-        req._multerDone = true;
 
         if (err) {
             return res.status(400).json({
@@ -23,6 +35,27 @@ const uploadFile = (req, res, next) => {
             });
         }
 
+        // Temporary debug line: remove once everything works
+        console.log(
+            "UPLOAD CHECK:",
+            req.headers["content-type"]?.split(";")[0],
+            "| file:",
+            req.file?.originalname || "none"
+        );
+
         next();
     });
-};
+
+
+// ==========================================
+// ROUTES
+// ==========================================
+
+router.post("/chat", protect, uploadFile, chat);
+
+router.post("/review", protect, review);
+router.post("/readme", protect, readme);
+router.post("/portfolio", protect, portfolio);
+router.post("/debug", protect, debugError);
+
+module.exports = router;
