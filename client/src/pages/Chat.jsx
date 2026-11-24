@@ -11,7 +11,7 @@ import {
     deleteConversation
 } from "../services/aiService";
 
-import ChatWindow from "../components/chat/Chatwindow";
+import Chatwindow from "../components/chat/Chatwindow";
 
 const INITIAL_MESSAGE = {
     role: "assistant",
@@ -784,7 +784,7 @@ export default function Chat() {
                         md:px-6
                     ">
 
-                        <ChatWindow
+                        <Chatwindow
                             messages={messages}
                             loading={loading}
                         />
