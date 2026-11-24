@@ -2,7 +2,7 @@ import ChatMessage from "./ChatMessage";
 import TypingIndicator from "./TypingIndicator";
 
 
-export default function ChatWindow({
+export default function Chatwindow({
 messages,
 loading
 }){
