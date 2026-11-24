@@ -11,7 +11,7 @@ import {
     deleteConversation
 } from "../services/aiService";
 
-import ChatWindow from "../components/chat/ChatWindow";
+import ChatWindow from "../components/chat/Chatwindow";
 
 const INITIAL_MESSAGE = {
     role: "assistant",
