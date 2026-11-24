@@ -9,8 +9,6 @@ import MainLayout from "../components/layout/MainLayout";
 import ProtectedRoute from "../components/common/ProtectedRoute";
 
 import Chat from "../pages/Chat";
-import Projects from "../pages/Projects";
-import AddProject from "../pages/AddProject";
 import CodeReviewer from "../pages/CodeReview";
 import AICenter from "../pages/AICenter";
 import DebugAssistant from "../pages/DebugAssistant";
@@ -34,8 +32,7 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route path="/projects" element={<Projects />} />
-        <Route path="/add-project" element={<AddProject />} />
+
         <Route path="/chat" element={<Chat />} />
         <Route path="/code-review" element={<CodeReviewer />} />
         <Route path="/ai" element={<AICenter />} />
