@@ -3,19 +3,27 @@ const cors = require("cors");
 
 const app = express();
 
+
 const allowedOrigins = [
-  "https://devhelper-ai-silk.vercel.app",
-  "https://interactive-devhelper.vercel.app",
+  "https://devhelper-ai-pi.vercel.app",
+  "https://devhelper-ai-eosin.vercel.app",
   "http://localhost:5173",
 ];
-
-app.use(cors({
-  origin: allowedOrigins,
+const corsOptions = {
+  origin: (origin, callback) => {
+    // autorise les requêtes sans origin (Postman, serveur à serveur)
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
-}));
+  credentials: true,
+};
 
-app.use(express.json());
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // preflight
 
 // Middleware
 
