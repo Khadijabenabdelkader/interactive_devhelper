@@ -3,9 +3,21 @@ const cors = require("cors");
 
 const app = express();
 
+const allowedOrigins = [
+  "https://devhelper-ai-silk.vercel.app",
+  "https://interactive-devhelper.vercel.app",
+  "http://localhost:5173",
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
+app.use(express.json());
 
 // Middleware
-app.use(cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
