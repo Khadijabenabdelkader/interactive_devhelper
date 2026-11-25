@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const historyApi = axios.create({
-  baseURL: "http://localhost:5000/api/ai"
+  baseURL: `${import.meta.env.VITE_API_URL}/api/ai`,
 });
 
 historyApi.interceptors.request.use((config) => {
