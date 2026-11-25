@@ -3,15 +3,14 @@ const cors = require("cors");
 
 const app = express();
 
-
 const allowedOrigins = [
   "https://devhelper-ai-pi.vercel.app",
   "https://devhelper-ai-eosin.vercel.app",
   "http://localhost:5173",
 ];
+
 const corsOptions = {
   origin: (origin, callback) => {
-    // autorise les requêtes sans origin (Postman, serveur à serveur)
     if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
@@ -22,11 +21,10 @@ const corsOptions = {
   credentials: true,
 };
 
+// CORS : une seule fois, avant les routes
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // preflight
 
 // Middleware
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -35,22 +33,12 @@ const authRoutes = require("./routes/authRoutes");
 const aiRoutes = require("./routes/aiRoutes");
 const projectRoutes = require("./routes/projectRoutes");
 
-app.use(cors({
-    origin:"http://localhost:5173",
-}));
-
 app.use("/api/auth", authRoutes);
-
 app.use("/api/ai", aiRoutes);
+app.use("/api/projects", projectRoutes);
 
-app.use("/api/projects",projectRoutes);
-
-
-app.get("/", (req,res)=>{
-    res.json({
-        message:"DevHelper AI API running 🚀"
-    });
+app.get("/", (req, res) => {
+  res.json({ message: "DevHelper AI API running 🚀" });
 });
-
 
 module.exports = app;
