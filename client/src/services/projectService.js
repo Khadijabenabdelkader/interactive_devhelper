@@ -1,8 +1,8 @@
 import axios from "axios";
+const BASE_URL = import.meta.env.VITE_API_URL.replace(/\/+$/, "");
 
 
-const API = `${import.meta.env.VITE_API_URL}/api/projects`;
-
+const API = `${BASE_URL}/api/projects`;
 
 
 function config(){
